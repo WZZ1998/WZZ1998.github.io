@@ -104,10 +104,12 @@
 </ul>
 </li>
 </ul>
+<a id="more"></a>
+
 <h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ol>
 <li><p>Java对集合的泛型没有协变性</p>
 <ol>
-<li>假定A是B的父类；Collection&lt;A&gt;却并不是Collection&lt;B&gt;的父类；直接讲后者赋值给前者不会通过编译<ol>
+<li>假定A是B的父类；Collection&lt;A&gt;却并不是Collection&lt;B&gt;的父类；直接将后者赋值给前者不会通过编译<ol>
 <li>反直觉；后来引入通配符来解决这类赋值问题，但是也给Java的泛型带来了一些局限</li>
 </ol>
 </li>
