@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>为什么不应该使用BigDecimal(double)这样的构造方法？ | 迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>为什么不应该使用BigDecimal(double)这样的构造方法？</h1>
+    </header>
+
+    <section>
+      <p><em>最早发于MT,  2019-07-10</em></p>
+<h3 id="疑问的起源"><a href="#疑问的起源" class="headerlink" title="疑问的起源"></a>疑问的起源</h3><p>在阿里巴巴Java开发手册上有这样一句规范：</p>
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-01.png" alt="blog-02-01.png"></p>
+<p>这句规范实质上讲的是正确的，但是了解浮点数存储方法的人读上几次之后，就会越发感到困惑：</p>
+<ol>
+<li><p>理论上说，BigDecimal可以表达任意精度的十进制小数，而Float和Double类型确实存在最高精度限制，将低精度转化为高精度，怎么会有精度损失？</p>
+</li>
+<li><p>众所周知，BigDecimal可以从字符串常量直接构造（返回字符串实际表达的精确值）</p>
+<ol>
+<li>那么直接接收double的构造显然不是从字符串构造出来的。那是如何构造的？</li>
+<li>调用valueOf方法等价于先对double进行toString，然后再构造BigDecimal，那么问题显然是，对Double调用toString，究竟做了什么？</li>
+</ol>
+</li>
+<li><p>更令人困惑的是，上面提到toString对Double的<em>实际能表达的精度</em>进行了<strong>截断</strong>。</p>
+<ol>
+<li><p>什么叫实际能表达的精度？和过去说的Double的最高精度有什么关系？</p>
+</li>
+<li><p>什么叫<strong>截断</strong>？如何理解？（事实证明<strong>截断</strong>这个词用在这里是不合适的，给人造成极大误解）</p>
+</li>
+</ol>
+</li>
+</ol>
+<a id="more"></a>
+
+<h3 id="开始探究"><a href="#开始探究" class="headerlink" title="开始探究"></a>开始探究</h3><p>我首先在本地对这些方法的使用进行了测试(为了方便直接使用了封装类)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 0.1d;</span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">        System.out.println(new BigDecimal(d1.toString()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-02.png" alt="blog-02-02.png"></p>
+<p>诚如阿里手册所言，我们的直接构造的方法返回的结果不太“正常”——构造的BigDecimal相比于我们期望的真实值有一些误差；</p>
+<p>而valueOf方法和自己toString的方法返回的结果是相同的，并且符合我们的期望。</p>
+<p>对大多数人而言，到此结果已经非常明显，他们的心里会得出如下结论：</p>
+<p>对BigDecimal，不能使用double直接构造，会丢失精度；应该使用valueOf方法，其内部先执行toString再构造，这样可以避免前面的问题。</p>
+<p>可惜，问题远远没有这么简单。看下面的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 0.137775674455567459d; // meaningless data </span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-03.png" alt="blog-02-03.png"></p>
+<p>很遗憾，valueOf方法也不好用了：对这个小数的转换也出现了误差；</p>
+<p>而且严格来说，直接构造的BigDecimal虽然位数比较多，但是事实上<strong>更接近</strong>原数字，误差更小</p>
+<p>还有下面这种情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 1.75d;</span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-04.png" alt="blog-02-04.png"></p>
+<p>这次两种方法都好用，都返回精确值。</p>
+<p>而且还有这种情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">		Double d1 = 0.1377756744555674595087424449957325123250484466552734375d;</span><br><span class="line">		System.out.println(new BigDecimal(d1));</span><br><span class="line">		System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-05.png" alt="blog-02-05.png"></p>
+<p>这次变成valueOf不好用了，而直接构造却返回了精确的值！</p>
+<h3 id="进一步探究"><a href="#进一步探究" class="headerlink" title="进一步探究"></a>进一步探究</h3><p>敏锐的小伙伴一定发现了，出现上面反常结果的原因，一定和浮点数的存储机制有密切关系，实际确实如此。我们从这个角度切入来研究问题。</p>
+<p>这里假设读者了解IEEE 754浮点标准，不再赘述。</p>
+<p>从本质上说，计算机由于存储的限制，不可能用浮点数完全精确地表示任何无限小数（但是可以用有理类型来表示某些典型值，如1/3等）；</p>
+<p>更进一步来说，浮点数标准本身的设计，导致了Double类型更强的局限性：由于只能用二进制表征小数，对于某些十进制下的有限小数，其也不能精确表示。</p>
+<p>（准确来说，浮点数只能完全精确地表示二的幂次的线性组合）</p>
+<p>因此，当我们使用Double类型时，计算机尝试将给出的十进制小数转化为二进制小数；如果不能精确转换，则直接<strong>舍弃</strong>不能表达的部分。</p>
+<p>在上面的例子中，0.1就是一个不能被二进制精确表达的值。当我们将Double的值定义为0.1时，内存中实际存储的是0.1转化为二进制后的<strong>近似值。</strong>这个数实际上是：</p>
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-06.png" alt="blog-02-06.png"></p>
+<p>这种转换带来的误差虽然很恼人，但是既然标准已经被制定，程序员也只能遵守；</p>
+<p>如果大家都清晰存储机制并且谨慎使用，double类型也能很好地发挥其功能。</p>
+<p>难题现在丢给了程序语言的设计者：该如何向用户汇报浮点数的值？</p>
+<p>一种方案是奉行只对数据真实负责的原则，向用户汇报内存中存储的真实值；</p>
+<p>另外一种方案是，试图克服/掩饰这种存储机制带来的误差问题。</p>
+<p>Java选择了后者。（当然指定要求存储真实的值时，Java还是会返回的）</p>
+<h3 id="toString的玄机"><a href="#toString的玄机" class="headerlink" title="toString的玄机"></a>toString的玄机</h3><p>前面说到，Java试图对用户掩饰这种存储机制带来的误差影响：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 0.1d;</span><br><span class="line">        System.out.println(d1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行的结果是返回0.1，这就造成了一种假象，让不明所以的用户以为Java存储了精确值。</p>
+<p>println执行前，先要对double进行toString，这就和我们的本源问题扯上了关系。</p>
+<p>现在看来，对double调用toString时，Java带有一种倾向：向用户返回<strong>Java认为“精确”</strong>的值。这个逻辑就在Double的toString逻辑中。</p>
+<p>二进制转十进制是有确定算法的，任意有限二进制小数都可以精确转化为十进制小数。</p>
+<p>但是仅仅转化为十进制小数还不行，它还要进行一定的舍入操作，以使得类似0.1d之类的值返回的结果是0.1。</p>
+<p>如何进行舍入呢？我们都知道浮点数的真实精度值，实际上都存在fraction段里面。舍入的过程本质就是丢弃fraction位的过程。</p>
+<p>SE的API有这样的描述：</p>
+<blockquote>
+<p>How many digits must be printed for the fractional part of <em>m</em> or <em>a</em>? There must be at least one digit to represent the fractional part, and beyond that as many, but only as many, more digits as are needed to uniquely distinguish the argument value from adjacent values of type double. That is, suppose that <em>x</em> is the exact mathematical value represented by the decimal representation produced by this method for a finite nonzero argument <em>d</em>. Then <em>d</em> must be the double value nearest to <em>x</em>; or if two double values are equally close to <em>x</em>, then <em>d</em> must be one of them and the least significant bit of the significand of <em>d</em> must be 0.</p>
+</blockquote>
+<p>对这个描述，做两点分析：</p>
+<p>第一，Java保证，通过toString(d) 拿到的值，经过标准IEEE转换算法后，返回的二进制小数严格等于d。</p>
+<p>（标准转换算法保证两点性质：对x转换得到的浮点数，必定是浮点数所能精确表示的所有数中，在数轴上最接近x的那个；如果有两个数同样接近x，那么保证返回的浮点数的fraction的最后一位是0，即【向偶数舍入】）</p>
+<p>第二，Java保证，在满足第一条的条件下，返回的这个十进制的小数的有效数字尽可能少。————注意，事实并不是如此，在下一节详细说明。</p>
+<p>按照这个描述，我们不妨先假设Java在这个舍入上得到很好的结果——可以映射到x，长度尽可能短。</p>
+<p>比如对于double类型 0.1d这样的值，Java可以很好地舍入到0.1，只保留1个有效数字，却又能保证当将0.1重新映射到double时，其值恰好是0.1d。</p>
+<p>上面的这种关系被称为<strong><em>round-trip。</em></strong></p>
+<h3 id="Java的bug"><a href="#Java的bug" class="headerlink" title="Java的bug"></a>Java的bug</h3><p>有了上面的背景，我们来讨论round-trip的问题。</p>
+<p>很显然，对于一个浮点数，直接将其转化为十进制小数而不做任何舍入，必定满足round-trip性质。但是它的有效数字太多了，显然不是我们想要的。</p>
+<p>有没有可能去掉一些有效数字呢？</p>
+<p>蛮力的方法就是先给出直接转化的小数，然后一位一位的尝试舍弃，查看是否满足round-trip的性质。</p>
+<p>一般来说，对于Double类型，给定一个含有17个有效数字的拟合十进制小数，就可以保证round-trip。</p>
+<p>但是对于一些值而言，显然需要的有效数字远小于17，比如0.1d只需要1个有效数字就可以round-trip。</p>
+<p>对于任何一个浮点数，必定存在一个有效数字最少的十进制小数，使得其满足round-trip性质。这被称为最短round-trip问题。</p>
+<p>显然，最短 round-trip 是一个和浮点数本身相关的性质。</p>
+<p>看到这里，读者可能会觉得，如果对Double进行toString，如果能返回该浮点数的最短round-trip的小数，是比较合理的。因为当这个数被重新存入double时，内容同最初的Double相一致。</p>
+<p>在人的视角看来，返回的数字尽可能简短，符合人的近似思想，比较直观；对计算机来说，它摆脱了“说谎”的嫌疑，因为Double存储的数据不因转换而改变。</p>
+<p>上面这个故事听起来很美好，Java也<em>声称</em>它会给出最短round-trip，但是<strong>事实上</strong>Java并没有做到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">		// d1 = 2^(-44)</span><br><span class="line">		Double d1 = 0.00000000000005684341886080801486968994140625d;</span><br><span class="line">		System.out.println(d1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-07.png" alt="blog-02-07.png"></p>
+<p>但是，这个浮点数的最短round-trip是5.684341886080802E-14，其含有16个有效数字；而Java给出的结果含有17个有效数字。诸如此类的例子还有很多。</p>
+<p>也就是说，Java对Double的toString操作并不能返回有效数字最少的十进制小数，尽管它声称如此，这是一个bug。</p>
+<p>这个bug在2001年即有人提出，但是直至JDK8这个问题依然存在。</p>
+<p>（在众多编程语言中，这个问题都存在：Python3在设计时就要求严格返回最短round-trip小数，JS也有类似行为，其余语言可能也有和Java类似的问题</p>
+<p>来源请求：<a href="https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-may-not-be-the-nearest/）" target="_blank" rel="noopener">https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-may-not-be-the-nearest/）</a></p>
+<h3 id="原问题的答案"><a href="#原问题的答案" class="headerlink" title="原问题的答案"></a>原问题的答案</h3><p>到此，我们已经将这个问题剖析的非常透彻：</p>
+<ol>
+<li>BigDecimal用Double直接构造的方法，会得到浮点数未经任何舍入的存储值（通过二进制转十进制算法）。从浮点数存储的角度来说，<strong>没有丢失精度</strong></li>
+<li>valueOf方法先调用toString，toString返回该浮点数的一个round-trip的十进制小数。尽管Java声称这个小数是最短的，但是事实并非如此</li>
+</ol>
+<p>不难发现阿里手册中的问题：</p>
+<ol>
+<li>首先，精度丢失的问题本身和BigDecimal无关。BigDecimal接收double的直接构造方法，含义非常清晰，根本<strong>不存在</strong>什么所谓的神秘的不可预见性</li>
+<li>toString方法也没有对double做什么所谓“截断”，而是寻找round-trip的值，目的是缩减有效数字，提高数据的直观性</li>
+</ol>
+<p>本质上来说，toString没有做错什么，在仅有Double使用的意义下，对用户展示的数据同存储的实际数据对计算机来说是<strong>等价</strong>的，Java本身可能并不希望用户被这些琐碎之事困扰。</p>
+<p>再来说精度问题：</p>
+<p>当一个量被声明为Double时，精度丢失的问题就是不可避免的；丢失精度是浮点数存储标准设计的固有缺陷，无法弥补。</p>
+<p>在仅有Double的情况下，toString的行为是有益的、没有错误的；但是当这一切同BigDecimal结合的时候，就出现了奇怪的谬误。</p>
+<h3 id="应该如何做？"><a href="#应该如何做？" class="headerlink" title="应该如何做？"></a>应该如何做？</h3><p>阿里手册最误导人的地方，就在于可能让人错误地认为：BigDecimal的valueOf(double)可以精确地将<em>用户认为</em>的”精确的值“保存下来。</p>
+<p><strong>事实上并不能</strong>，尽管在某些数值上貌似是如此——这只是找到的round-trip小数出现的巧合。</p>
+<p>前面也提到了，Java double的toString实际行为同声称相悖。即使没有这个bug，valueOf方法也不可能实现完全精确保存：</p>
+<p>从有限十进制小数到浮点数的映射不是单射，而每一个浮点数只对应一个最短round-trip。</p>
+<p><strong>简单来说，当选择使用double时，就必须接受不可弥补的精度损失；</strong></p>
+<p><strong>完全精确的运算只应该使用BigDecimal；</strong></p>
+<p><strong>尽量不要混用Double和BigDecimal的逻辑</strong></p>
+<p><strong>BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用</strong></p>
+<h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><p>既然返回最短round-trip看起来如此合理，为什么这么多年来Java都没有做这件事情呢？</p>
+<p>Java本身选择round-trip的过程又有什么逻辑呢？</p>
+<p>个人认为可能和性能考量有关，但只是猜测。</p>
+<p>具体的最底层源代码在sun.misc.FloatingDecimal中，这个代码是和底层平台相关的，而且我没有找到官方的版本。</p>
+<p><em>希望哪位大佬有想法的话能不吝赐教，感激不尽。</em></p>
+<p>19.7.9 晚 更新</p>
+<p>据说Java最初的代码实现参照了ACM的一篇论文的转化算法，而这个算法本身会带来这个问题。</p>
+<p>后来又有一篇论文提及这个转换问题。</p>
+<p>Oracle的bug论坛上给出了一个给出最短round-trip的实现。</p>
+<p><a href="https://ampl.com/REFS/rounding.pdf" target="_blank" rel="noopener">https://ampl.com/REFS/rounding.pdf</a></p>
+<p><a href="http://kurtstephens.com/files/p372-steele.pdf" target="_blank" rel="noopener">http://kurtstephens.com/files/p372-steele.pdf</a></p>
+<h3 id="感想"><a href="#感想" class="headerlink" title="感想"></a>感想</h3><p>这个吃人天坑终于填完了，感觉这种刨根问底的方法对人提升还是很大的，而且搞清楚了很有成就感；</p>
+<p>上面的文章写的比较匆忙，希望大家指正批评。</p>
+<h3 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h3><p><a href="https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-examples/" target="_blank" rel="noopener">https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-examples/</a></p>
+<p><a href="https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-may-not-be-the-nearest/" target="_blank" rel="noopener">https://www.exploringbinary.com/the-shortest-decimal-string-that-round-trips-may-not-be-the-nearest/</a></p>
+<p><a href="https://www.exploringbinary.com/java-doesnt-print-the-shortest-strings-that-round-trip/" target="_blank" rel="noopener">https://www.exploringbinary.com/java-doesnt-print-the-shortest-strings-that-round-trip/</a></p>
+<p><a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4511638" target="_blank" rel="noopener">https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4511638</a></p>
+<p><a href="https://stackoverflow.com/questions/47124355/where-is-sun-misc-floatingdecimal" target="_blank" rel="noopener">https://stackoverflow.com/questions/47124355/where-is-sun-misc-floatingdecimal</a></p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-15T06:01:22.000Z" itemprop="datePublished">
+              2019-10-15
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>
