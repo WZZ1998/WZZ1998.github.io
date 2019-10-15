@@ -201,7 +201,11 @@
 <p><strong>事实上并不能</strong>，尽管在某些数值上貌似是如此——这只是找到的round-trip小数出现的巧合。</p>
 <p>前面也提到了，Java double的toString实际行为同声称相悖。即使没有这个bug，valueOf方法也不可能实现完全精确保存：</p>
 <p>从有限十进制小数到浮点数的映射不是单射，而每一个浮点数只对应一个最短round-trip。</p>
-<h6 id="简单来说，当选择使用double时，就必须接受不可弥补的精度损失；"><a href="#简单来说，当选择使用double时，就必须接受不可弥补的精度损失；" class="headerlink" title="简单来说，当选择使用double时，就必须接受不可弥补的精度损失；"></a><strong>简单来说，当选择使用double时，就必须接受不可弥补的精度损失；</strong></h6><h6 id="完全精确的运算只应该使用BigDecimal；"><a href="#完全精确的运算只应该使用BigDecimal；" class="headerlink" title="完全精确的运算只应该使用BigDecimal；"></a><strong>完全精确的运算只应该使用BigDecimal；</strong></h6><h6 id="尽量不要混用Double和BigDecimal的逻辑"><a href="#尽量不要混用Double和BigDecimal的逻辑" class="headerlink" title="尽量不要混用Double和BigDecimal的逻辑"></a><strong>尽量不要混用Double和BigDecimal的逻辑</strong></h6><h6 id="BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用"><a href="#BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用" class="headerlink" title="BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用"></a><strong>BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用</strong></h6><h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><p>既然返回最短round-trip看起来如此合理，为什么这么多年来Java都没有做这件事情呢？</p>
+<p><strong>简单来说，当选择使用double时，就必须接受不可弥补的精度损失；</strong></p>
+<p><strong>完全精确的运算只应该使用BigDecimal；</strong></p>
+<p><strong>尽量不要混用Double和BigDecimal的逻辑</strong></p>
+<p><strong>BigDecimal的valueOf方法根本无法弥补Double既成的精度损失，慎用</strong></p>
+<h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><p>既然返回最短round-trip看起来如此合理，为什么这么多年来Java都没有做这件事情呢？</p>
 <p>Java本身选择round-trip的过程又有什么逻辑呢？</p>
 <p>个人认为可能和性能考量有关，但只是猜测。</p>
 <p>具体的最底层源代码在sun.misc.FloatingDecimal中，这个代码是和底层平台相关的，而且我没有找到官方的版本。</p>
