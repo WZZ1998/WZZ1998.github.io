@@ -85,7 +85,7 @@
     <section>
       <p><em>最早发于MT,  2019-07-10</em></p>
 <h3 id="疑问的起源"><a href="#疑问的起源" class="headerlink" title="疑问的起源"></a>疑问的起源</h3><p>在阿里巴巴Java开发手册上有这样一句规范：</p>
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-01.png" alt="blog-02-01.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-01.png" alt="blog-02-01.png"></p>
 <p>这句规范实质上讲的是正确的，但是了解浮点数存储方法的人读上几次之后，就会越发感到困惑：</p>
 <ol>
 <li><p>理论上说，BigDecimal可以表达任意精度的十进制小数，而Float和Double类型确实存在最高精度限制，将低精度转化为高精度，怎么会有精度损失？</p>
@@ -111,7 +111,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 0.1d;</span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">        System.out.println(new BigDecimal(d1.toString()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>结果如下：</p>
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-02.png" alt="blog-02-02.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-02.png" alt="blog-02-02.png"></p>
 <p>诚如阿里手册所言，我们的直接构造的方法返回的结果不太“正常”——构造的BigDecimal相比于我们期望的真实值有一些误差；</p>
 <p>而valueOf方法和自己toString的方法返回的结果是相同的，并且符合我们的期望。</p>
 <p>对大多数人而言，到此结果已经非常明显，他们的心里会得出如下结论：</p>
@@ -119,18 +119,18 @@
 <p>可惜，问题远远没有这么简单。看下面的例子：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 0.137775674455567459d; // meaningless data </span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-03.png" alt="blog-02-03.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-03.png" alt="blog-02-03.png"></p>
 <p>很遗憾，valueOf方法也不好用了：对这个小数的转换也出现了误差；</p>
 <p>而且严格来说，直接构造的BigDecimal虽然位数比较多，但是事实上<strong>更接近</strong>原数字，误差更小</p>
 <p>还有下面这种情况：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Double d1 = 1.75d;</span><br><span class="line">        System.out.println(new BigDecimal(d1));</span><br><span class="line">        System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-04.png" alt="blog-02-04.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-04.png" alt="blog-02-04.png"></p>
 <p>这次两种方法都好用，都返回精确值。</p>
 <p>而且还有这种情况：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">		Double d1 = 0.1377756744555674595087424449957325123250484466552734375d;</span><br><span class="line">		System.out.println(new BigDecimal(d1));</span><br><span class="line">		System.out.println(BigDecimal.valueOf(d1));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-05.png" alt="blog-02-05.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-05.png" alt="blog-02-05.png"></p>
 <p>这次变成valueOf不好用了，而直接构造却返回了精确的值！</p>
 <h3 id="进一步探究"><a href="#进一步探究" class="headerlink" title="进一步探究"></a>进一步探究</h3><p>敏锐的小伙伴一定发现了，出现上面反常结果的原因，一定和浮点数的存储机制有密切关系，实际确实如此。我们从这个角度切入来研究问题。</p>
 <p>这里假设读者了解IEEE 754浮点标准，不再赘述。</p>
@@ -139,7 +139,7 @@
 <p>（准确来说，浮点数只能完全精确地表示二的幂次的线性组合）</p>
 <p>因此，当我们使用Double类型时，计算机尝试将给出的十进制小数转化为二进制小数；如果不能精确转换，则直接<strong>舍弃</strong>不能表达的部分。</p>
 <p>在上面的例子中，0.1就是一个不能被二进制精确表达的值。当我们将Double的值定义为0.1时，内存中实际存储的是0.1转化为二进制后的<strong>近似值。</strong>这个数实际上是：</p>
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-06.png" alt="blog-02-06.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-06.png" alt="blog-02-06.png"></p>
 <p>这种转换带来的误差虽然很恼人，但是既然标准已经被制定，程序员也只能遵守；</p>
 <p>如果大家都清晰存储机制并且谨慎使用，double类型也能很好地发挥其功能。</p>
 <p>难题现在丢给了程序语言的设计者：该如何向用户汇报浮点数的值？</p>
@@ -179,7 +179,7 @@
 <p>上面这个故事听起来很美好，Java也<em>声称</em>它会给出最短round-trip，但是<strong>事实上</strong>Java并没有做到：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">		// d1 = 2^(-44)</span><br><span class="line">		Double d1 = 0.00000000000005684341886080801486968994140625d;</span><br><span class="line">		System.out.println(d1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="http://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-07.png" alt="blog-02-07.png"></p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-07.png" alt="blog-02-07.png"></p>
 <p>但是，这个浮点数的最短round-trip是5.684341886080802E-14，其含有16个有效数字；而Java给出的结果含有17个有效数字。诸如此类的例子还有很多。</p>
 <p>也就是说，Java对Double的toString操作并不能返回有效数字最少的十进制小数，尽管它声称如此，这是一个bug。</p>
 <p>这个bug在2001年即有人提出，但是直至JDK8这个问题依然存在。</p>
