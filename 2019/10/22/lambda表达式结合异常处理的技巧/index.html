@@ -83,11 +83,15 @@
     </header>
 
     <section>
-      <p><em>最早发于MT,  2019-06-28</em></p>
+      <!--no.5--> 
+<p><em>最早发于MT,  2019-06-28</em></p>
 <h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>以lambda表达式为代表的函数式编程为Java程序编写引入了极大的便利性。但是如果在labmda表达式内部直接嵌入异常处理则会使得代码臃肿，如下。如何解决这个问题？</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">	List&lt;Integer&gt; ints = Arrays.asList(1,2,3,4,5,6,7,0);</span><br><span class="line">  ints.forEach(i -&gt;  &#123;</span><br><span class="line">		try &#123;</span><br><span class="line">			System.out.println(50 / i);</span><br><span class="line">		&#125; catch (ArithmeticException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>（注意，这是一个Unchecked异常）</p>
+<a id="more"></a>
+
+
 <h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>可以使用一层包装函数来解决， lambdaWrapper将异常处理封装在内部。这样lambda表达式的简洁性得到了维持：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">static Consumer&lt;Integer&gt; lambdaWrapper (Consumer&lt;Integer&gt; f) &#123;</span><br><span class="line">  return i -&gt; &#123;</span><br><span class="line">      try &#123;</span><br><span class="line">          f.accept(i);</span><br><span class="line">      &#125; catch (ArithmeticException e) &#123;</span><br><span class="line">          e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">    List&lt;Integer&gt; ints = Arrays.asList(1,2,3,4,5,6,7,0);</span><br><span class="line">    ints.forEach(lambdaWrapper(i-&gt;System.out.println(50 / i)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
