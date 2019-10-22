@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Optional类、Streams API和并发流 | 迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>Optional类、Streams API和并发流</h1>
+    </header>
+
+    <section>
+       <!--no.6--> 
+<p><em>最早发于MT,  2019-08-12</em></p>
+<p><em>如何优雅地解决掉NPE？</em></p>
+<ul>
+<li>Optional类的灵感来自于一些其他的FP语言，主要的意义就是消除imperative形式的null检查，以及非常丑陋的判空的卫语句。</li>
+<li>Optional的API的设计思想和Stream有一定共性</li>
+<li>Optional的本质就是用类型信息和声明式逻辑相结合的方法，力求替换掉null检查带来的数据流和控制流的结合</li>
+<li>注意事项<ul>
+<li>Stream的map、flatMap、filter方法，在Optional类上都有相似的执行逻辑，注意flatMap可以展开多层Optional嵌套</li>
+<li><strong>不推荐使用基本类型的Optional类型：</strong><ul>
+<li><strong>这里不再需要考虑性能</strong></li>
+<li><strong>OptionalInt之类的类型没有map、flatMap、filter这些方法——其FP的表达能力被限制了</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<ul>
+<li><p>flatMap怎么用？</p>
+<ul>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-01.png" alt="blog-06-01.png"></li>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-02.png" alt="屏幕快照 2019-08-09 下午3.14.50.png"></li>
+</ul>
+</li>
+<li><p>在必要时注意使用基本类型特化流，避免自动装箱/开箱在数据量巨大时可以带来相当大的性能提升</p>
+</li>
+</ul>
+<hr>
+<p>使用并发流的建议</p>
+<ol>
+<li>对于不确定的情况，看测试数据而定</li>
+<li>如果可能，使用基本类型特化流</li>
+<li>某些操作本质上不适合使用并发流：类似limit、findFirst这种依赖stream中元素顺序的操作，都不适合使用并发流；相比来说，findAny不需要考虑流中元素的顺序<ol>
+<li>如果底层数据源是有序的，比如List，那么执行一下unordered()方法，可以得到无序流；在无序流上调用limit要比在有序流上性能好很多</li>
+</ol>
+</li>
+<li>如果处理stream中一个元素花费的时间代价可能比较长，那么这种stream更适合使用并发</li>
+<li>流的数据量很小，那么不值得并发——并发的利益比不上分割任务所带来的开销</li>
+<li>底层数据源的易分割性对并发非常重要，不同数据源的可分割性差距很大<ol>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-03.png" alt="blog-06-03.png"></li>
+</ol>
+</li>
+<li>流的特征字段，以及中间操作对流的改变作用，都会影响流的可分割性<ol>
+<li>一个标定SIZED的流可以均分成两部分；但是比如流中有filter操作，那么流本身的元素个数就是不确定的了</li>
+</ol>
+</li>
+<li>如果终结操作中，合并并发流子结果的代价很大，那么并发的带来的优势可能会被抵消掉</li>
+</ol>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-22T13:03:27.000Z" itemprop="datePublished">
+              2019-10-22
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java8/">java8</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

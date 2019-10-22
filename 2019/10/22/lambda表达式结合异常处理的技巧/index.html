@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>迷离若虚</title>
+  <title>lambda表达式结合异常处理的技巧 | 迷离若虚</title>
   
     <link rel="icon" href="/assets/favicon.ico">
   
@@ -76,164 +76,14 @@
 
     <div class="container">
         <div data-pager-shell>
-            <ul class="Index">
-  
+            <div>
+  <article class='ContentView'>
     <header class='PageTitle'>
-        <h1>{ tech }</h1>
+        <h1>lambda表达式结合异常处理的技巧</h1>
     </header>
-  
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/22/Optional类、Streams-API和并发流/">Optional类、Streams API和并发流</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-22T13:03:27.000Z" itemprop="datePublished">
-    2019-10-22
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
 
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java8/">java8</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-         <!--no.6--> 
-<p><em>最早发于MT,  2019-08-12</em></p>
-<p><em>如何优雅地解决掉NPE？</em></p>
-<ul>
-<li>Optional类的灵感来自于一些其他的FP语言，主要的意义就是消除imperative形式的null检查，以及非常丑陋的判空的卫语句。</li>
-<li>Optional的API的设计思想和Stream有一定共性</li>
-<li>Optional的本质就是用类型信息和声明式逻辑相结合的方法，力求替换掉null检查带来的数据流和控制流的结合</li>
-<li>注意事项<ul>
-<li>Stream的map、flatMap、filter方法，在Optional类上都有相似的执行逻辑，注意flatMap可以展开多层Optional嵌套</li>
-<li><strong>不推荐使用基本类型的Optional类型：</strong><ul>
-<li><strong>这里不再需要考虑性能</strong></li>
-<li><strong>OptionalInt之类的类型没有map、flatMap、filter这些方法——其FP的表达能力被限制了</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<hr>
-<ul>
-<li><p>flatMap怎么用？</p>
-<ul>
-<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-01.png" alt="blog-06-01.png"></li>
-<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-02.png" alt="屏幕快照 2019-08-09 下午3.14.50.png"></li>
-</ul>
-</li>
-<li><p>在必要时注意使用基本类型特化流，避免自动装箱/开箱在数据量巨大时可以带来相当大的性能提升</p>
-</li>
-</ul>
-<hr>
-<p>使用并发流的建议</p>
-<ol>
-<li>对于不确定的情况，看测试数据而定</li>
-<li>如果可能，使用基本类型特化流</li>
-<li>某些操作本质上不适合使用并发流：类似limit、findFirst这种依赖stream中元素顺序的操作，都不适合使用并发流；相比来说，findAny不需要考虑流中元素的顺序<ol>
-<li>如果底层数据源是有序的，比如List，那么执行一下unordered()方法，可以得到无序流；在无序流上调用limit要比在有序流上性能好很多</li>
-</ol>
-</li>
-<li>如果处理stream中一个元素花费的时间代价可能比较长，那么这种stream更适合使用并发</li>
-<li>流的数据量很小，那么不值得并发——并发的利益比不上分割任务所带来的开销</li>
-<li>底层数据源的易分割性对并发非常重要，不同数据源的可分割性差距很大<ol>
-<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-06-03.png" alt="blog-06-03.png"></li>
-</ol>
-</li>
-<li>流的特征字段，以及中间操作对流的改变作用，都会影响流的可分割性<ol>
-<li>一个标定SIZED的流可以均分成两部分；但是比如流中有filter操作，那么流本身的元素个数就是不确定的了</li>
-</ol>
-</li>
-<li>如果终结操作中，合并并发流子结果的代价很大，那么并发的带来的优势可能会被抵消掉</li>
-</ol>
-
-      
-    </div>
-</article>
-
-    </li>
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/22/lambda表达式结合异常处理的技巧/">lambda表达式结合异常处理的技巧</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-22T12:55:42.000Z" itemprop="datePublished">
-    2019-10-22
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java8/">java8</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-06-28</em></p>
+    <section>
+      <p><em>最早发于MT,  2019-06-28</em></p>
 <h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>以lambda表达式为代表的函数式编程为Java程序编写引入了极大的便利性。但是如果在labmda表达式内部直接嵌入异常处理则会使得代码臃肿，如下。如何解决这个问题？</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">	List&lt;Integer&gt; ints = Arrays.asList(1,2,3,4,5,6,7,0);</span><br><span class="line">  ints.forEach(i -&gt;  &#123;</span><br><span class="line">		try &#123;</span><br><span class="line">			System.out.println(50 / i);</span><br><span class="line">		&#125; catch (ArithmeticException e) &#123;</span><br><span class="line">			e.printStackTrace();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -257,28 +107,21 @@
 
 <h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>注意函数式接口的用法，还有如何优雅地封装</p>
 
-      
-    </div>
-</article>
 
-    </li>
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
       
-        <h1>
-          <a href="/2019/10/22/lambda表达式和方法引用/">lambda表达式和方法引用</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-22T12:44:45.000Z" itemprop="datePublished">
-    2019-10-22
-  </time>
-  
-  | 
-  <ul>
+
+    </section>
     
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-22T12:55:42.000Z" itemprop="datePublished">
+              2019-10-22
+            </time>
+          </div>
+          
+            <div>
+              tags: 
   <li class="meta-text">
   { <a href="/tags/mt/">mt</a> }
   </li>
@@ -292,196 +135,15 @@
   </li>
 
 
-  </ul>
-  
-  
-  / 
-  <ul>
+            </div>
+          
+      </section>
     
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-08-12</em></p>
-<ul>
-<li>lambda表达式的类型信息是残缺的<ul>
-<li>lambda相比匿名类更加简洁，但是其只有所谓的function descriptor，而没有匿名类的父类那样清晰的类型<ul>
-<li>诸如 Object o = () -&gt; {} 这样的语句是无法通过编译的，lambda表达式只能被赋给类型匹配的函数式接口</li>
-<li>Object o = (Runnable) () -&gt; {} 是可以的，lambda就差一个接口信息</li>
-<li>如果函数重载靠两个target type相同的函数式接口参数区分，那个上面的转换（其实是一种类型标注）就是必要的，否则编译器会混淆</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>从lambda向方法引用化简的语法糖<ul>
-<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-04-01.png" alt="blog-04-01.png"></li>
-</ul>
-</li>
-</ul>
-
-      
-    </div>
+    
 </article>
 
-    </li>
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/15/Java泛型学习/">Java泛型学习</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-15T09:11:00.000Z" itemprop="datePublished">
-    2019-10-15
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
   
 </div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-08-01</em></p>
-<h3 id="泛型概念"><a href="#泛型概念" class="headerlink" title="泛型概念"></a>泛型概念</h3><p>泛型的概念确实最早源于C++的Template。</p>
-<p>C++设计模版的最初目标是为了写出脱离具体类型的、通用高效的类库算法（如STL）。泛型的核心概念就是<strong>参数化类型</strong>。Java的泛型属于<strong>编译期泛化机制</strong>。</p>
-<p>后来的语言都借鉴了泛型的这种<strong>思想</strong>。但是，Generic Programming并不一定完全是C++所呈现的那样（模版泛型）。 <em>实际上应当是什么样？</em></p>
-<h3 id="模版泛型与擦除泛型"><a href="#模版泛型与擦除泛型" class="headerlink" title="模版泛型与擦除泛型"></a>模版泛型与擦除泛型</h3><p>模版泛型：为每一个具有不同类型参数的同一泛型类（模版类）生成不同的二进制代码</p>
-<p>擦除泛型：不同类型参数的同一泛型类本质上是同一个类，共用同一二进制代码</p>
-<p>对Java来说，编译器不会为泛型生成各自独立的代码，而是在编译阶段直接擦除所有的类型信息。因此，所有的泛型其实还是在共用同一套机器代码</p>
-<p>编译器在适当的位置插入强制转型、类型检查以及适应多态覆盖原则的桥接方法</p>
-<ul>
-<li>因此，所有的负担都都丢给了编译器。一旦进入运行阶段，类型擦除之后，泛型不复存在，期望的类型检查也将毫无约束力<ul>
-<li>我们可以通过反射，绕过编译期的局限，在运行时刻执行不符合泛型要求的操作，编译器对此毫无抵抗能力<ul>
-<li>因此，Java需要在运行时刻多做很多检查，以求覆盖类型擦除导致的编译器检查的能力局限，这可能给运行带来性能负担</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-        
-          <div class="more-link">
-            <a href="/2019/10/15/Java泛型学习/#more">Read On »</a>
-          </div>
-        
-      
-    </div>
-</article>
-
-    </li>
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/15/为什么不应该使用BigDecimal(double)这样的构造方法？/">为什么不应该使用BigDecimal(double)这样的构造方法？</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-15T06:01:22.000Z" itemprop="datePublished">
-    2019-10-15
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-07-10</em></p>
-<h3 id="疑问的起源"><a href="#疑问的起源" class="headerlink" title="疑问的起源"></a>疑问的起源</h3><p>在阿里巴巴Java开发手册上有这样一句规范：</p>
-<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-01.png" alt="blog-02-01.png"></p>
-<p>这句规范实质上讲的是正确的，但是了解浮点数存储方法的人读上几次之后，就会越发感到困惑：</p>
-<ol>
-<li><p>理论上说，BigDecimal可以表达任意精度的十进制小数，而Float和Double类型确实存在最高精度限制，将低精度转化为高精度，怎么会有精度损失？</p>
-</li>
-<li><p>众所周知，BigDecimal可以从字符串常量直接构造（返回字符串实际表达的精确值）</p>
-<ol>
-<li>那么直接接收double的构造显然不是从字符串构造出来的。那是如何构造的？</li>
-<li>调用valueOf方法等价于先对double进行toString，然后再构造BigDecimal，那么问题显然是，对Double调用toString，究竟做了什么？</li>
-</ol>
-</li>
-<li><p>更令人困惑的是，上面提到toString对Double的<em>实际能表达的精度</em>进行了<strong>截断</strong>。</p>
-<ol>
-<li><p>什么叫实际能表达的精度？和过去说的Double的最高精度有什么关系？</p>
-</li>
-<li><p>什么叫<strong>截断</strong>？如何理解？（事实证明<strong>截断</strong>这个词用在这里是不合适的，给人造成极大误解）</p>
-</li>
-</ol>
-</li>
-</ol>
-        
-          <div class="more-link">
-            <a href="/2019/10/15/为什么不应该使用BigDecimal(double)这样的构造方法？/#more">Read On »</a>
-          </div>
-        
-      
-    </div>
-</article>
-
-    </li>
-  
-</ul>
-
 
             <footer>
     <div>© 2019 - Zizhou Wang </div>

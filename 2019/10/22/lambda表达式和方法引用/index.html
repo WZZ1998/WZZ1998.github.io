@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>tags | 迷离若虚</title>
+  <title>lambda表达式和方法引用 | 迷离若虚</title>
   
     <link rel="icon" href="/assets/favicon.ico">
   
@@ -79,40 +79,63 @@
             <div>
   <article class='ContentView'>
     <header class='PageTitle'>
-        <h1>tags</h1>
+        <h1>lambda表达式和方法引用</h1>
     </header>
 
     <section>
-      
-
-      
-        <ul class="Tags">
-          
-  <li class="tag-list">
-  { <a href="/tags/aboutMe/">aboutMe</a> }
-  </li>
-
-  <li class="tag-list">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="tag-list">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-  <li class="tag-list">
-  { <a href="/tags/java8/">java8</a> }
-  </li>
+      <p><em>最早发于MT,  2019-08-12</em></p>
+<ul>
+<li>lambda表达式的类型信息是残缺的<ul>
+<li>lambda相比匿名类更加简洁，但是其只有所谓的function descriptor，而没有匿名类的父类那样清晰的类型<ul>
+<li>诸如 Object o = () -&gt; {} 这样的语句是无法通过编译的，lambda表达式只能被赋给类型匹配的函数式接口</li>
+<li>Object o = (Runnable) () -&gt; {} 是可以的，lambda就差一个接口信息</li>
+<li>如果函数重载靠两个target type相同的函数式接口参数区分，那个上面的转换（其实是一种类型标注）就是必要的，否则编译器会混淆</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>从lambda向方法引用化简的语法糖<ul>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-04-01.png" alt="blog-04-01.png"></li>
+</ul>
+</li>
+</ul>
 
 
-        </ul>
       
 
     </section>
     
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-22T12:44:45.000Z" itemprop="datePublished">
+              2019-10-22
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java8/">java8</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
     
 </article>
 
+  
 </div>
 
             <footer>

@@ -79,7 +79,7 @@
             <ul class="Index">
   
     <header class='PageTitle'>
-        <h1>{ tech }</h1>
+        <h1>{ java8 }</h1>
     </header>
   
   
@@ -333,154 +333,8 @@
 
     </li>
   
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/15/Java泛型学习/">Java泛型学习</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-15T09:11:00.000Z" itemprop="datePublished">
-    2019-10-15
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-08-01</em></p>
-<h3 id="泛型概念"><a href="#泛型概念" class="headerlink" title="泛型概念"></a>泛型概念</h3><p>泛型的概念确实最早源于C++的Template。</p>
-<p>C++设计模版的最初目标是为了写出脱离具体类型的、通用高效的类库算法（如STL）。泛型的核心概念就是<strong>参数化类型</strong>。Java的泛型属于<strong>编译期泛化机制</strong>。</p>
-<p>后来的语言都借鉴了泛型的这种<strong>思想</strong>。但是，Generic Programming并不一定完全是C++所呈现的那样（模版泛型）。 <em>实际上应当是什么样？</em></p>
-<h3 id="模版泛型与擦除泛型"><a href="#模版泛型与擦除泛型" class="headerlink" title="模版泛型与擦除泛型"></a>模版泛型与擦除泛型</h3><p>模版泛型：为每一个具有不同类型参数的同一泛型类（模版类）生成不同的二进制代码</p>
-<p>擦除泛型：不同类型参数的同一泛型类本质上是同一个类，共用同一二进制代码</p>
-<p>对Java来说，编译器不会为泛型生成各自独立的代码，而是在编译阶段直接擦除所有的类型信息。因此，所有的泛型其实还是在共用同一套机器代码</p>
-<p>编译器在适当的位置插入强制转型、类型检查以及适应多态覆盖原则的桥接方法</p>
-<ul>
-<li>因此，所有的负担都都丢给了编译器。一旦进入运行阶段，类型擦除之后，泛型不复存在，期望的类型检查也将毫无约束力<ul>
-<li>我们可以通过反射，绕过编译期的局限，在运行时刻执行不符合泛型要求的操作，编译器对此毫无抵抗能力<ul>
-<li>因此，Java需要在运行时刻多做很多检查，以求覆盖类型擦除导致的编译器检查的能力局限，这可能给运行带来性能负担</li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-        
-          <div class="more-link">
-            <a href="/2019/10/15/Java泛型学习/#more">Read On »</a>
-          </div>
-        
-      
-    </div>
-</article>
 
-    </li>
-  
-    <li>
-      <article class='ListView'>
-    <header class="title">
-      
-        <h1>
-          <a href="/2019/10/15/为什么不应该使用BigDecimal(double)这样的构造方法？/">为什么不应该使用BigDecimal(double)这样的构造方法？</a>
-        </h1>
-      
-      <div class='ListMeta'>
-  <time datetime="2019-10-15T06:01:22.000Z" itemprop="datePublished">
-    2019-10-15
-  </time>
-  
-  | 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/tags/mt/">mt</a> }
-  </li>
-
-  <li class="meta-text">
-  { <a href="/tags/java/">java</a> }
-  </li>
-
-
-  </ul>
-  
-  
-  / 
-  <ul>
-    
-  <li class="meta-text">
-  { <a href="/categories/tech/">tech</a> }
-  </li>
-
-
-  </ul>
-  
-</div>
-
-    </header>
-    <div>
-      
-        <p><em>最早发于MT,  2019-07-10</em></p>
-<h3 id="疑问的起源"><a href="#疑问的起源" class="headerlink" title="疑问的起源"></a>疑问的起源</h3><p>在阿里巴巴Java开发手册上有这样一句规范：</p>
-<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-02-01.png" alt="blog-02-01.png"></p>
-<p>这句规范实质上讲的是正确的，但是了解浮点数存储方法的人读上几次之后，就会越发感到困惑：</p>
-<ol>
-<li><p>理论上说，BigDecimal可以表达任意精度的十进制小数，而Float和Double类型确实存在最高精度限制，将低精度转化为高精度，怎么会有精度损失？</p>
-</li>
-<li><p>众所周知，BigDecimal可以从字符串常量直接构造（返回字符串实际表达的精确值）</p>
-<ol>
-<li>那么直接接收double的构造显然不是从字符串构造出来的。那是如何构造的？</li>
-<li>调用valueOf方法等价于先对double进行toString，然后再构造BigDecimal，那么问题显然是，对Double调用toString，究竟做了什么？</li>
-</ol>
-</li>
-<li><p>更令人困惑的是，上面提到toString对Double的<em>实际能表达的精度</em>进行了<strong>截断</strong>。</p>
-<ol>
-<li><p>什么叫实际能表达的精度？和过去说的Double的最高精度有什么关系？</p>
-</li>
-<li><p>什么叫<strong>截断</strong>？如何理解？（事实证明<strong>截断</strong>这个词用在这里是不合适的，给人造成极大误解）</p>
-</li>
-</ol>
-</li>
-</ol>
-        
-          <div class="more-link">
-            <a href="/2019/10/15/为什么不应该使用BigDecimal(double)这样的构造方法？/#more">Read On »</a>
-          </div>
-        
-      
-    </div>
-</article>
-
-    </li>
-  
-</ul>
 
 
             <footer>
