@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>基本类相关细节 | 迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>基本类相关细节</h1>
+    </header>
+
+    <section>
+      <!--no.8-->
+<p><em>最早发于MT,  2019-07-01</em></p>
+<p>##数字类</p>
+<ol>
+<li>执行浮点数到整型的窄化转换时，Java默认的行为是舍尾<ul>
+<li>舍入需要显式调用round()方法</li>
+</ul>
+</li>
+</ol>
+<p>##String</p>
+<p><em>字符串是极其常用的重要工具之一。</em></p>
+<h4 id="性能陷阱"><a href="#性能陷阱" class="headerlink" title="性能陷阱"></a>性能陷阱</h4><p>String不可变，除非编译器做常量优化，否则连接字符串实际是在不断生成新的String对象——耗费内存</p>
+<p>这也是StringBuilder和StringBuffer存在的意义。</p>
+<p>因此，除非确定字符串能被编译器优化掉，都应该使用StringBuilder或者StringBuffer来生成字符串。</p>
+<a id="more"></a>
+
+<h4 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h4><ul>
+<li>覆盖toString()的时候，如果不小心隐式调用了this的toString方法，就会无限递归。如果想要得到对象的内存地址，应该调用Object的toString方法，即super.toString()</li>
+<li>intern()方法<ul>
+<li><a href="https://tech.meituan.com/2014/03/06/in-depth-understanding-string-intern.html" target="_blank" rel="noopener">这个文章</a>讲的非常棒</li>
+</ul>
+</li>
+<li>valueOf方法不会去搜索常量池，也不会尝试将生成的字符串加入常量池</li>
+<li>String.format()方法<ul>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-08-01.png" alt="blog-08-01.png"></li>
+</ul>
+</li>
+<li>StringTokenizer已经弃用</li>
+<li>正则表达式的使用</li>
+</ul>
+<p>##enum</p>
+<h3 id="基本定义"><a href="#基本定义" class="headerlink" title="基本定义"></a>基本定义</h3><p>取值限定在离散的有限集内的类型。</p>
+<p>enum的每一个取值是一个独立的对象。</p>
+<p>Java的enum基于类实现，包含私有的构造器，在第一次被使用时才加载，而且一旦加载就会立刻初始化所有的枚举值。</p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>values()返回枚举值的集合；某个枚举值的对象的ordinal()返回该值在枚举类中的声明排位（从0计）。</p>
+<h3 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h3><p>enum类型可以实现接口，可以自定义构造器（必须私有），可以内部添加抽象方法然后在枚举值中实现。</p>
+<p>也可以在类内部或者某一枚举值的子类中添加属性。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">enum Day &#123;</span><br><span class="line">    Mon(&quot;GD!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Tue(&quot;GW!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Wed(&quot;I am hpy!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Thur(&quot;Nice2 meet U~&quot;)&#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Fri(&quot;Wish U well!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Sat(&quot;Relax!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    Sun(&quot;Go out!&quot;) &#123;</span><br><span class="line">        @Override</span><br><span class="line">        void show() &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    private String happyWord;</span><br><span class="line">    private Day(String s) &#123;</span><br><span class="line">        happyWord = s;</span><br><span class="line">    &#125;</span><br><span class="line">    abstract void show();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>扩展后，每一个枚举值都是枚举类的子类的对象。</p>
+<p>可见枚举类的可扩展性很强。</p>
+<h3 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h3><p>enum类型本身很特殊，不许clone，保证单例。</p>
+<p>序列化的时候只记录对枚举类的引用和枚举常量，反序列化的时候直接在JVM里面去查对应的实例然后返回。<br><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-08-02.png" alt="blog-08-02.png"></p>
+<p>枚举类型是一种实现 <strong>单例模式</strong> 的优良方法。</p>
+<p>具体实现见“单例模式”。</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-22T13:49:00.000Z" itemprop="datePublished">
+              2019-10-22
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java-base/">java-base</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

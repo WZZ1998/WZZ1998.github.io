@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>类型系统与反射 | 迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>类型系统与反射</h1>
+    </header>
+
+    <section>
+      <!--no.10-->
+<p><em>最早发于MT,  2019-07-30</em></p>
+<ul>
+<li><p>Class对象</p>
+<ul>
+<li>调用类名.class 返回该类的Class对象，不会触发该类的初始化<ul>
+<li>编译器检查，不会抛出异常</li>
+</ul>
+</li>
+<li>调用Class.forName(String)方法，参数为类的全路径名（同一文件内可以直接写类名），也返回该类的Class对象，但是会触发该类的初始化<ul>
+<li>可能抛出异常</li>
+</ul>
+</li>
+<li>角度刁钻<ul>
+<li>Class对象的类是什么？<ul>
+<li>Class<t>类</t></li>
+</ul>
+</li>
+<li>Class类有没有Class对象？<ul>
+<li>有，Class也有对应的Class对象</li>
+<li>(Class.class).getClass() == Class.class返回true；也就是说Class的类对象调用getClass方法返回自己</li>
+</ul>
+</li>
+<li>鸡生蛋vs蛋生鸡问题<ul>
+<li>JVM保证自举</li>
+<li><a href="https://www.zhihu.com/question/30301819/answer/47539163" target="_blank" rel="noopener">一个不错的讨论</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li><p>奇怪的缺陷</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public class Main &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        // A extends B</span><br><span class="line">        Class&lt;? extends B&gt; c1 = A.class; // OK</span><br><span class="line">        Class&lt;A&gt; c2 = A.class;</span><br><span class="line">        Class &lt;? super A&gt; c3 = A.class.getSuperclass();</span><br><span class="line">        // !!! 下面的语句无法通过编译！</span><br><span class="line">        // Class&lt;B&gt; c4 = A.class.getSuperclass();</span><br><span class="line">        </span><br><span class="line">        // 下面这条语句无法通过编译，可以理解，因为B可能有多个继承类</span><br><span class="line">        // A a = c1.newInstance();</span><br><span class="line">        </span><br><span class="line">        B b = c1.newInstance(); // OK</span><br><span class="line">        </span><br><span class="line">        // 下面这条语句也不能通过编译！非常古怪</span><br><span class="line">        // B b = c3.newInstance();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>A是B的子类，但是Class<a> 不是Class<b> 的子类，这两个类没有继承关系<ul>
+<li>对A的类对象调用getSuperclass方法,返回B的类对象——<strong><em>这只能说明A继承B，两个类对象无关</em></strong></li>
+<li>Class&lt;? extends B&gt; c1 = A.class之后，可以用B引用c1产生的对象</li>
+<li><strong>古怪：</strong> A.class.getSuperclass() 返回的是B的类对象（因为Java只有单一继承），但是编译器不认可这件事<ul>
+<li>编译器只认可，该返回值的类型为capture&lt;? super A&gt;，即使这个capture只可能是B这个类型——<strong>缺陷，识别A的父类这件事情本来是可以在编译期就完成的</strong></li>
+<li><strong>结果：我们无法给c3.newInstance()方法的返回值赋一个具体类型，只能向上转型为Object</strong></li>
+</ul>
+</li>
+</ul>
+</b></a></li>
+</ul>
+</li>
+<li><p>反射</p>
+<ul>
+<li>对方法和域的反射，可以通过setAccessible方法，穿透任何权限修饰符的限制<ul>
+<li>但是标明final的域实际上是安全的：<strong>运行时JVM会在不抛出异常的情况下接受修改的尝试，但是修改实际上并不会发生</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<ul>
+<li><p>静态代理与动态代理</p>
+<ul>
+<li><p>代理模式</p>
+</li>
+<li><p>有了动态代理，我们就可以在不修改源代码的情况下，动态增强原方法的功能，而且不需要承担为被代理类手工创建代理类的开销</p>
+<ul>
+<li>动态代理是Spring AOP的最重要技术，也是RPC调用的基础</li>
+</ul>
+</li>
+<li><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line"></span><br><span class="line">public class Main &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        // 被代理者</span><br><span class="line">        final AImpl realObject = new AImpl();</span><br><span class="line"></span><br><span class="line">        // 动态代理</span><br><span class="line">        InvocationHandler invocationHandler = (proxy,method,arguments)-&gt;&#123;</span><br><span class="line">            System.out.println(&quot;method: &quot; + method);</span><br><span class="line">            System.out.println(&quot;arguments :&quot; + arguments);</span><br><span class="line">            System.out.println(&quot;In lambda proxy,before&quot;);</span><br><span class="line">            // local variable captured</span><br><span class="line">            realObject.doSomething();</span><br><span class="line">            System.out.println(&quot;In lambda proxy,after&quot;);</span><br><span class="line">            return null;</span><br><span class="line">    &#125;;</span><br><span class="line">        A dynamicProxy = (A)Proxy.newProxyInstance(Main.class.getClassLoader(),</span><br><span class="line">                new Class[]&#123;A.class&#125;,invocationHandler);</span><br><span class="line">        dynamicProxy.doSomething();</span><br><span class="line"></span><br><span class="line">        System.out.println();</span><br><span class="line"></span><br><span class="line">        //  静态代理</span><br><span class="line">        A staticProxy = new StaticProxyOfAImpl(realObject);</span><br><span class="line">        staticProxy.doSomething();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">interface A &#123;</span><br><span class="line">    void doSomething();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class AImpl implements A &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void doSomething() &#123;</span><br><span class="line">        System.out.println(&quot;do something in A.&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class StaticProxyOfAImpl implements A &#123;</span><br><span class="line">    private A realObject;</span><br><span class="line">    public StaticProxyOfAImpl(A a) &#123;</span><br><span class="line">        this.realObject = a;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void doSomething() &#123;</span><br><span class="line">        System.out.println(&quot;In static proxy, before invoking&quot;);</span><br><span class="line">        realObject.doSomething();</span><br><span class="line">        System.out.println(&quot;In static proxy, after invoking&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>如果在代理句柄的内部调用句柄对象，那么会直接爆栈；事实上在创建代理实例之后，<strong>无论在什么位置，对代理实例的方法调用都会映射到句柄的invoke方法，这一点值得注意</strong></p>
+<ul>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-10-01.png" alt="blog-10-01.png"></li>
+</ul>
+</li>
+</ul>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-10-22T14:08:32.000Z" itemprop="datePublished">
+              2019-10-22
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java-base/">java-base</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

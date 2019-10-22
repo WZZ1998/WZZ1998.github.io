@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <ul class="Index">
+  
+    <header class='PageTitle'>
+        <h1>{ java-base }</h1>
+    </header>
+  
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2019/10/22/类型系统与反射/">类型系统与反射</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2019-10-22T14:08:32.000Z" itemprop="datePublished">
+    2019-10-22
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java-base/">java-base</a> }
+  </li>
+
+
+  </ul>
+  
+  
+  / 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/categories/tech/">tech</a> }
+  </li>
+
+
+  </ul>
+  
+</div>
+
+    </header>
+    <div>
+      
+        <!--no.10-->
+<p><em>最早发于MT,  2019-07-30</em></p>
+<ul>
+<li><p>Class对象</p>
+<ul>
+<li>调用类名.class 返回该类的Class对象，不会触发该类的初始化<ul>
+<li>编译器检查，不会抛出异常</li>
+</ul>
+</li>
+<li>调用Class.forName(String)方法，参数为类的全路径名（同一文件内可以直接写类名），也返回该类的Class对象，但是会触发该类的初始化<ul>
+<li>可能抛出异常</li>
+</ul>
+</li>
+<li>角度刁钻<ul>
+<li>Class对象的类是什么？<ul>
+<li>Class<t>类</t></li>
+</ul>
+</li>
+<li>Class类有没有Class对象？<ul>
+<li>有，Class也有对应的Class对象</li>
+<li>(Class.class).getClass() == Class.class返回true；也就是说Class的类对象调用getClass方法返回自己</li>
+</ul>
+</li>
+<li>鸡生蛋vs蛋生鸡问题<ul>
+<li>JVM保证自举</li>
+<li><a href="https://www.zhihu.com/question/30301819/answer/47539163" target="_blank" rel="noopener">一个不错的讨论</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+        
+          <div class="more-link">
+            <a href="/2019/10/22/类型系统与反射/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2019/10/22/控制流/">控制流</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2019-10-22T14:03:55.000Z" itemprop="datePublished">
+    2019-10-22
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java-base/">java-base</a> }
+  </li>
+
+
+  </ul>
+  
+  
+  / 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/categories/tech/">tech</a> }
+  </li>
+
+
+  </ul>
+  
+</div>
+
+    </header>
+    <div>
+      
+        <!--no.9-->
+
+<p><em>最早发于MT,  2019-07-16</em></p>
+<ol>
+<li>标签控制语句的用法<ul>
+<li>只应该使用在多层循环嵌套的场景（<em>多层循环嵌套本身被开发规范所批评</em>）</li>
+<li><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-09-01.png" alt="blog-09-01.png"></li>
+</ul>
+</li>
+<li>switch现在已经支持使用String作为判断键<ul>
+<li>先判断hashCode，然后再检查equals</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2019/10/22/基本类相关细节/">基本类相关细节</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2019-10-22T13:49:00.000Z" itemprop="datePublished">
+    2019-10-22
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/mt/">mt</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java/">java</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/java-base/">java-base</a> }
+  </li>
+
+
+  </ul>
+  
+  
+  / 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/categories/tech/">tech</a> }
+  </li>
+
+
+  </ul>
+  
+</div>
+
+    </header>
+    <div>
+      
+        <!--no.8-->
+<p><em>最早发于MT,  2019-07-01</em></p>
+<p>##数字类</p>
+<ol>
+<li>执行浮点数到整型的窄化转换时，Java默认的行为是舍尾<ul>
+<li>舍入需要显式调用round()方法</li>
+</ul>
+</li>
+</ol>
+<p>##String</p>
+<p><em>字符串是极其常用的重要工具之一。</em></p>
+<h4 id="性能陷阱"><a href="#性能陷阱" class="headerlink" title="性能陷阱"></a>性能陷阱</h4><p>String不可变，除非编译器做常量优化，否则连接字符串实际是在不断生成新的String对象——耗费内存</p>
+<p>这也是StringBuilder和StringBuffer存在的意义。</p>
+<p>因此，除非确定字符串能被编译器优化掉，都应该使用StringBuilder或者StringBuffer来生成字符串。</p>
+        
+          <div class="more-link">
+            <a href="/2019/10/22/基本类相关细节/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+</ul>
+
+
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>
