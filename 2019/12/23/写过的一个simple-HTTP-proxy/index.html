@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>写过的一个simple HTTP proxy | 迷离若虚</title>
+  
+    <link rel="icon" href="/assets/favicon.ico">
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url(/assets/mybg.png)">
+        <div class='av-pic' style="background-image: url(/assets/avatar.JPG)">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>迷离若虚</div>
+        
+            <div>Be indifferent to the world.</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+            <a href="/tags/" class="Btn">
+              <li>Tags</li>
+            </a>  
+          
+            <a href="/categories/" class="Btn">
+              <li>Categories</li>
+            </a>  
+          
+            <a href="/about/" class="Btn">
+              <li>About</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+            
+                <a href="https://www.linkedin.com/in/梓州-王-956275181/">
+                    <img src="/assets/linkedin.svg" />
+                </a>
+            
+        
+            
+                <a href="https://github.com/WZZ1998">
+                    <img src="/assets/github.svg" />
+                </a>
+            
+        
+            
+                <a href="https://www.zhihu.com/people/wang-zi-zhou-pku/activities">
+                    <img src="/assets/zhihu.svg" />
+                </a>
+            
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>写过的一个simple HTTP proxy</h1>
+    </header>
+
+    <section>
+      <!--no.11-->
+
+<h3 id="前前言"><a href="#前前言" class="headerlink" title="前前言"></a>前前言</h3><p>之前写过的一个简单的HTTP proxy，支持1.0版本，GET方法，背景是学校的操作系统实习课要求改进CSAPP的proxy lab（是的就是这么骚气<br>主要是在Linux下用Select实现的，学习用，非常naive。 在这里贴一下之前写的报告。</p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>主要进行了两方面工作：其一，研究了用IO多路复用方法实现并发代理服务器的方法，在成功实现的基础上，对多路复用方法所需要的操作进行了必要的封装，并且编写了一些测试工具；其二，对proxylab课程测试本身的检测流程进行了一些改良，添加了用真实网页自动化对提交的proxy进行鲁棒性和速度测试的过程。</p>
+<a id="more"></a>
+
+<h3 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h3><p>多线程是使得代理服务器支持并发的标准方法，但并不是唯一方法。IO多路复用使得我们可以用一个进程处理多个客户端请求。<br>阻塞的IO是导致单一进程不能处理并发请求的根本原因，但如果只是简单地改IO非阻塞，我们又必须通过轮询的手段检测数据是否已经准备好，从而浪费大量的CPU时间。IO多路复用的基本思路是在保持单个IO接口依然阻塞的条件下，通过Select函数让内核检测一组IO接口的可读写状态，并且在任一个接口可读或者可写时返回。注意Select本身还是阻塞的，因此我们使用的多路复用是一个<strong>阻塞异步IO</strong>模型。下面以Select为例，介绍该方法的模型：</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-01.png" alt="blog-11-01.png" style="zoom: 50%;">
+
+<ol>
+<li>准备好想要监视的IO端口集合S</li>
+<li>执行Select系统调用，进程阻塞，让内核代替进程自己监视整个IO集合读写状态</li>
+<li>某些IO端口可读写，Select返回</li>
+<li>处理对应端口的工作，此时一定不会被阻塞</li>
+<li>执行 1</li>
+</ol>
+<p>以上循环中，我们实际上相当于阻塞在了多个IO上，注意Select本身是不能明确区分哪些端口处于可读写状态的，因此Select返回后，我们需要对端口集合进行手动检查。</p>
+<p>相比于多线程，IO多路复用机制由于不再需要上下文切换以及维护多线程的工作信息，节约了系统开销。特别是在处理端口数量巨大，无法承担创建线程的开销时，IO多路复用模型是一个很好的选择。</p>
+<h3 id="用IO多路复用实现proxy"><a href="#用IO多路复用实现proxy" class="headerlink" title="用IO多路复用实现proxy"></a>用IO多路复用实现proxy</h3><p>根据教材提示，我们选择使用Select函数来实现多路复用。Select的具体用法在CSAPP教材上讲的比较清楚，在此不再赘述，但是要满足我们的需要，我们必须能检测可读和可写状态两种状态，原因是为了防止进程在连接到目标服务器时被阻塞（后面详细叙述）。<br>简易web proxy的主要工作就是接受客户端发来的请求连接，解析client的http请求，再向真正的目标服务器发起连接，取得内容，然后写回给客户端即可。基于多线程的proxy主要是使用主线程接受客户端的请求，然后为一份客户端的工作创建一个子线程，由子线程去完成具体工作。现在我们不再使用多线程，因此既需要能够通过Select同时监测多个连接的可读写情况，还必须在返回后能够有序地处理不同的工作。因此，我们选择以<strong>一个客户端请求所蕴含的工作</strong>为基本元素，构建为Select服务、完成具体任务的工作池pool：</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-02.png" alt="blog-11-02.png" style="zoom: 50%;">
+
+<p>我们在池中维护Select自己所需要的最大文件描述符、读写监测集合，并且将具体任务组织为工作槽，每个槽中元素都拥有自己完成工作所必须的数据结构。由于连接到目标服务器可能不会一次成功，proxy必须有能力搁置结果不确定的当前工作，转而去服务其他client，并适时回来继续工作，因此对每个元素，保存工作过程中的一些数据都是必要的。</p>
+<p>下面介绍程序的主要逻辑：</p>
+<ol>
+<li>将监听描述符加入Select监测集合（监听描述符应当被一直监测）</li>
+<li>更新监测集合</li>
+<li>对给定好的监测集合，执行Select，挂起当前进程</li>
+<li>从Select返回</li>
+<li>若有，把监听描述符的连接加入工作槽</li>
+<li>遍历工作槽，处理具体工作，相应地增删改监测集合元素</li>
+<li>执行 2</li>
+</ol>
+<p>从上述逻辑可以得知：工作槽中的所有元素都来自于监听描述符的添加；完成工作后的工作槽元素应该被清除；工作槽中的元素在某一时间总是处于某个工作阶段之中；遍历工作槽的过程应当能够推进每个元素在工作流程中前进。针对于proxy的具体任务，我们为每一个元素设置了工作状态量，并将其构建为简单的有穷自动机。这样，处理每个元素就可以依照自动机的逻辑进行。在这里，我们为每个工作元素设置了4个状态：</p>
+<pre><code>STATE 1 ：新加入
+STATE 2 ：连接失败
+STATE 3 ：已经连接到目标服务器
+STATE 4 ：正在连接/连接结果未知</code></pre><p>非常值得一提的是，状态4的设置对于基于Select的proxy是非常必要的。注意，我们的proxy现在只拥有一个进程，默认连接到目标服务器的connect操作是默认阻塞的，而TCP三路握手时间最多可以长达75s。如此长的阻塞时间是不可接受的。因此我们必须使用非阻塞的连接方式，在调用connect之后立刻返回。此时的连接有可能立刻成功/失败，但更多情况下，状态为<strong>正在连接（EINPROGRESS）</strong>。一个正在连接的socket端口是不可写的。我们也用Select来对其进行监测。只有当连接有了确切的结果时，才去处理这个工作元素。由此，我们实现了连接某一服务器与处理其他工作的<strong>异步</strong>。<br>下面是4状态的有穷自动机，处理每种状态要进行不同的Move，并且根据Move的执行结果，决定此工作元素变为哪一种状态。带黑色方块的状态表示只有当Select检测到此元素处在可读/可写集合中时，才进行处理，否则直接跳过。注意处于状态2的元素没有这一要求，这意味着我们每次检查工作槽时都会将连接错误的元素进行重连。正如pool的定义，我们会记录一个元素的连接失败次数，当其超过一定阈值之后，此工作元素将被从槽中清除，以防止其长期占用资源。</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-03.png" alt="blog-11-03.png" style="zoom:67%;">
+
+<p>对Select监听描述符集合的处理非常重要，并且与状态的处理关系密切。简单来说，状态1时，被监听的描述符是其实连接client的socket，其可读意味着client已经把http请求写到端口上，我们可以去读；状态3时，监听的是连接server的socket，其可读意味着server已经把client要的内容写到端口，我们应该读取然后写到client的端口上。特别地，前两个是在监听是否可读，而状态4则监测尝试连接server的socket是否可写。但是，一旦可写，也<strong>不能</strong>确定连接成功，还需进一步检查套接字的error option来区分连接错误和连接已建立。</p>
+<p>另外遇到的一个非常有意思的问题，是针对状态3中server传来的数据，我们应该如何写回client。最直接的想法就是不断读取socket上的内容随即写回client，直到读完所有。这种做法一般不会有严重问题，但是实质上<strong>不利于</strong>proxy支持并发。其一，如果某些不正常甚至恶意的client通过proxy去访问非常大的资源，那么代理服务器将在处理此工作元素上花费大量的时间，这段时间内别的client得不到服务，也不能响应新的连接。其二，proxy对待不同的client应该秉持<strong>公平</strong>原则，不应当有client占用过多的时间。目前我个人的处理方法是，对监测到可读的状态3的元素，每次处理只从server读取一行并写入到client。直到读完了server的全部内容，才把其描述符从监测集合中移除。这样可以保证，我们每次检查工作槽时，都会处理尚未读完的状态为3的工作元素。<br>多线程的实现中，每个子线程都可以读取server的内容直到结束，这是因为不同线程之间的并发，是由<strong>操作系统</strong>进行<strong>调度</strong>的结果；由于现在只有一个进程，公平对待不同任务就成为实现proxy需要考虑的问题。上面所说的处理方法，相当于按照<strong>轮转法</strong>进行调度。</p>
+<h3 id="其他事项以及整合到lab"><a href="#其他事项以及整合到lab" class="headerlink" title="其他事项以及整合到lab"></a>其他事项以及整合到lab</h3><p>不同于多线程，在使用多路复用实现proxy时，必须妥善处理各种异常情况，不能武断地直接退出程序。CSAPP包装的Rio系列函数在遇到IO错误时会直接导致进程退出，因此应当全部使用未包装的rio系列函数，并且谨慎处理错误返回值。<br>针对于调试工作，我们不再遇到多线程时的恼人的并发错误。由于程序的控制流在自动机中转换，每个工作元素的状态含有关键信息。因此，我实现了一个基于python可视化的debug工具vis_buf.py：在proxy中每次检查工作槽后，将前500个元素的状态值写入到文件中；外部使用python脚本循环刷新，读取文件并将状态可视化为散点图。通过动态可视化，我们可以清晰地看到工作槽中的元素是如何发生状态转换，直至最后被清除的。</p>
+<p>此外，还实现了一个实用的调试工具test_client，其可以取得给定网址的http内容；还可以在指定并发数量后，使用多线程向指定端口建立连接然后发送请求，可以用来测试proxy的鲁棒性和性能。具体的工作方式由参数确定。</p>
+<p>下图是test_client和vis_buf.py搭配使用的效果图：<br><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-04.png" alt="blog-11-04.png" style="zoom:50%;"></p>
+<p>这部分针对lab本身的工作是对操作Select工作池状态、处理池中工作元素、处理Select监测集合等完成proxy所必需的过程以及调试函数进行了封装，封装所在C文件与头文件一并打包分发给学生，最终链接到proxy之中。我们希望学生可以深入思考IO多路复用的实现方法，但是并不强制。上面提到的两个辅助工具也会随附，以供方便。事实上，在探究实现的过程中，对proxy最主要的检验方法就是访问现有网络的http资源。因此，真实页面仍然是最推荐的测试手段。</p>
+<p>此外，为了降低学生理解的困难，分发给学生的proxy.c中包含好了程序运行的主要逻辑，学生只需要完成检查工作槽时，针对不同状态的工作元素的处理函数即可。我们按照以上思路实现的多路复用proxy源代码及可执行文件，则被添加到了lab的src文件夹中，以供用于对学生提交的测试工作。</p>
+<h3 id="对lab测试的改进"><a href="#对lab测试的改进" class="headerlink" title="对lab测试的改进"></a>对lab测试的改进</h3><p>另外一部分工作是改进对学生提交的测试。原有proxylab的测试方法是在本地运行tiny服务器，透过proxy去访问资源，以此来检测正确性和功能实现情况。对于真实页面，则需要人工筛查。借助前面实现的测试工具test_client以及实现的多路复用proxy，我在脚本中添加了三个访问真实网页的测试，并且调整了分数的分配。<br>Real Basic测试提交proxy访问真实页面的基本功能。通过test_client向proxy和标准proxy发送请求，将两边的返回内容写入文件然后比对，一致则得分。</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-05.png" alt="blog-11-05.png" style="zoom:50%;">
+
+<p>Robust测试提交proxy对异常IO情况的鲁棒性。首先执行多线程的test_client向proxy发送请求，随后立即kill该进程，以制造IO异常。在此之后重复Real Basic的测试并计分。</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-06.png" alt="blog-11-06.png" style="zoom:50%;">
+
+
+<p>Speed粗略测试提交proxy处理较多任务的性能。通过多线程test_client，对同一资源，向proxy和标准proxy发送相同并发数量的请求，并分别计时，然后比较。由于真实的网络环境可能比较复杂，测试的结果并不稳定，比较粗略。此外，该测试里标准proxy的实现方法并没有追求性能上的最优，理论上并不会使得学生难以通过测试。</p>
+<img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-07.png" alt="blog-11-07.png" style="zoom:50%;">
+
+
+
+<p>以上的工作通过修改driver.sh进行，为了保证测试效果，后三种测试对学生并不可见。对proxy的真实测试操作都使用了超时机制，以防止脚本运行时间过长。</p>
+<p>下面是在Autolab上的部分测试结果：</p>
+<p><img src="https://714105382-personal-blog.oss-cn-zhangjiakou.aliyuncs.com/blog-11-08.png" alt="blog-11-08.png"></p>
+<h3 id="感想与收获"><a href="#感想与收获" class="headerlink" title="感想与收获"></a>感想与收获</h3><p>本质上说，探究多路复用的proxy，本质上是在研究<strong>IO模型</strong>和<strong>并发问题</strong>。必须承认，此模型虽然没有多线程的问题，但是程序的复杂性比较高，构建思路和调试工作并不是很容易。Select是最经典的IO多路复用的实现函数，也是CSAPP教材提及的内容，使用它可以让我们以最朴素、最直接的方式去理解IO多路复用的思想。封装的工作过程涉及到为别人构造接口，必然要涉及到API的规范问题，以及符合既有编程惯例的要求。如何编写才能使得可靠性和复用性高，也是必须要考虑的一个问题。</p>
+<p>为了实现对测试的改进，我学习了shell语言并且认知到其强大。前期调试脚本有些困难，随后越来越熟练。自我构思测试方法的过程还是非常有趣的。还有一点重要的收获就是使用git进行版本控制的一些经验。</p>
+<p>研究IO模型的长远意义在于构建高性能服务器。Select本身的能力其实相当有限，性能上也不够优秀，但是其可移植性最好。Linux上已有诸如epoll等更高效的实现方法，事件驱动模型的框架和库也相对比较丰富，进一步调研、学习这些方法和库，是我将来非常想要进行的工作。但是无论如何变化发展，这些模型的基本思想总是一致的。</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2019-12-22T17:57:50.000Z" itemprop="datePublished">
+              2019-12-23
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/c/">c</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/csapp/">csapp</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/event-driven/">event-driven</a> }
+  </li>
+
+  <li class="meta-text">
+  { <a href="/tags/proxy/">proxy</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2019 - Zizhou Wang </div>
+    <div>
+        <span>
+            Powered by <a href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+<script src="/js/pager/dist/singlepager.js"></script>
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>
